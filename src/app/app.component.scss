@@ -1,0 +1,22 @@
+// Most styling now handled by Tailwind CSS
+// Keep any custom component-specific styles here
+
+.navbar-menu {
+  @media (max-width: 768px) {
+    &.flex {
+      animation: slideDown 0.3s ease-out;
+    }
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

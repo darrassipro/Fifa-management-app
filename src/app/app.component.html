@@ -1,0 +1,84 @@
+<div class="min-h-screen flex flex-col bg-gray-100">
+  <!-- Navigation Bar -->
+  <nav class="bg-gradient-to-r from-purple-600 to-purple-800 text-white shadow-lg sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center">
+          <h1 class="text-2xl font-bold">⚽ FIFA Manager</h1>
+        </div>
+        
+        <button 
+          class="md:hidden p-2 rounded-lg hover:bg-purple-700 transition-colors"
+          (click)="toggleMenu()"
+        >
+          <span class="text-3xl">☰</span>
+        </button>
+
+        <div 
+          class="hidden md:flex space-x-2"
+          [class.flex]="menuOpen"
+          [class.fixed]="menuOpen"
+          [class.top-16]="menuOpen"
+          [class.left-0]="menuOpen"
+          [class.right-0]="menuOpen"
+          [class.bg-gradient-to-r]="menuOpen"
+          [class.from-purple-600]="menuOpen"
+          [class.to-purple-800]="menuOpen"
+          [class.flex-col]="menuOpen"
+          [class.p-4]="menuOpen"
+          [class.shadow-lg]="menuOpen"
+          [class.transform]="menuOpen"
+          [class.transition-transform]="menuOpen"
+          [class.duration-300]="menuOpen"
+        >
+          <a
+            routerLink="/dashboard"
+            routerLinkActive="bg-white/30 shadow-md"
+            (click)="closeMenu()"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-lg hover:bg-white/20 transition-all duration-200 font-medium"
+          >
+            <span class="text-xl">📊</span>
+            <span>Dashboard</span>
+          </a>
+          <a
+            routerLink="/team"
+            routerLinkActive="bg-white/30 shadow-md"
+            (click)="closeMenu()"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-lg hover:bg-white/20 transition-all duration-200 font-medium"
+          >
+            <span class="text-xl">🏆</span>
+            <span>Team</span>
+          </a>
+          <a
+            routerLink="/players"
+            routerLinkActive="bg-white/30 shadow-md"
+            (click)="closeMenu()"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-lg hover:bg-white/20 transition-all duration-200 font-medium"
+          >
+            <span class="text-xl">👥</span>
+            <span>Players</span>
+          </a>
+          <a
+            routerLink="/matches"
+            routerLinkActive="bg-white/30 shadow-md"
+            (click)="closeMenu()"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-lg hover:bg-white/20 transition-all duration-200 font-medium"
+          >
+            <span class="text-xl">⚽</span>
+            <span>Matches</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="flex-1 py-6">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 text-white text-center py-5 mt-auto">
+    <p class="text-sm">FIFA Manager App - Built with Angular & Tailwind CSS | © 2025</p>
+  </footer>
+</div>

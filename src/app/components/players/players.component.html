@@ -1,0 +1,250 @@
+<div class="players-container">
+  <div class="players-header">
+    <h1>Player Management</h1>
+    <p *ngIf="team">{{ team.name }} - {{ teamPlayers.length }}/25 Players</p>
+  </div>
+
+  <div class="players-content">
+    <!-- My Team Section -->
+    <div class="my-team-section">
+      <h2>My Team Squad</h2>
+      <div *ngIf="teamPlayers.length === 0" class="empty-state">
+        <p>No players in your team yet</p>
+        <p class="hint">Search and add players from the Available Players section</p>
+      </div>
+      <div *ngIf="teamPlayers.length > 0" class="team-squad">
+        <div *ngFor="let player of teamPlayers" class="player-card team-player">
+          <img [src]="player.imageUrl" [alt]="player.name" class="player-image" (error)="$any($event.target).src='https://via.placeholder.com/100/0066cc/ffffff?text=Player'">
+          <div class="player-info">
+            <h3>{{ player.name }}</h3>
+            <span class="player-position" [style.background-color]="getPositionColor(player.position)">
+              {{ player.position }}
+            </span>
+            <div class="player-rating">{{ player.overallRating }}</div>
+          </div>
+          <div class="player-stats-mini">
+            <div class="stat">
+              <span class="stat-label">Form</span>
+              <span class="stat-value" [style.color]="getFormColor(player.form)">{{ player.form }}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Fitness</span>
+              <span class="stat-value">{{ player.fitness }}</span>
+            </div>
+          </div>
+          <div class="player-actions">
+            <button class="btn-icon" (click)="selectPlayer(player)" title="View Details">
+              👁️
+            </button>
+            <button class="btn-icon btn-remove" (click)="removePlayerFromTeam(player.id)" title="Remove">
+              ❌
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Available Players Section -->
+    <div class="available-players-section">
+      <h2>Available Players</h2>
+      
+      <!-- Search Controls -->
+      <div class="search-controls">
+        <div class="search-group">
+          <input
+            type="text"
+            [(ngModel)]="searchTeamName"
+            placeholder="Search by team name..."
+            class="search-input"
+          >
+          <button (click)="loadPlayers()" [disabled]="isLoading" class="btn-search">
+            {{ isLoading ? 'Loading...' : 'Search' }}
+          </button>
+        </div>
+        
+        <div class="filter-group">
+          <label>Filter by Position:</label>
+          <select [(ngModel)]="filterPosition" class="filter-select">
+            <option *ngFor="let position of positions" [value]="position">
+              {{ position }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Players Grid -->
+      <div *ngIf="isLoading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading players...</p>
+      </div>
+
+      <div *ngIf="!isLoading && getFilteredPlayers().length === 0" class="empty-state">
+        <p>No players found</p>
+        <p class="hint">Try searching for a different team</p>
+      </div>
+
+      <div *ngIf="!isLoading && getFilteredPlayers().length > 0" class="players-grid">
+        <div *ngFor="let player of getFilteredPlayers()" class="player-card available-player">
+          <img [src]="player.imageUrl" [alt]="player.name" class="player-image" (error)="$any($event.target).src='https://via.placeholder.com/100/0066cc/ffffff?text=Player'">
+          <div class="player-info">
+            <h3>{{ player.name }}</h3>
+            <span class="player-position" [style.background-color]="getPositionColor(player.position)">
+              {{ player.position }}
+            </span>
+            <div class="player-rating">{{ player.overallRating }}</div>
+          </div>
+          <div class="player-stats-mini">
+            <div class="stat">
+              <span class="stat-label">Pace</span>
+              <span class="stat-value">{{ player.pace }}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Shooting</span>
+              <span class="stat-value">{{ player.shooting }}</span>
+            </div>
+          </div>
+          <div class="player-actions">
+            <button class="btn-icon" (click)="selectPlayer(player)" title="View Details">
+              👁️
+            </button>
+            <button
+              *ngIf="!isPlayerInTeam(player.id)"
+              class="btn-icon btn-add"
+              (click)="addPlayerToTeam(player)"
+              title="Add to Team"
+            >
+              ➕
+            </button>
+            <span *ngIf="isPlayerInTeam(player.id)" class="in-team-badge">
+              ✓ In Team
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player Details Modal -->
+  <div *ngIf="selectedPlayer" class="modal-overlay" (click)="closePlayerDetails()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="closePlayerDetails()">✕</button>
+      <div class="player-details">
+        <img [src]="selectedPlayer.imageUrl" [alt]="selectedPlayer.name" class="player-detail-image">
+        <h2>{{ selectedPlayer.name }}</h2>
+        <div class="player-detail-header">
+          <span class="player-position" [style.background-color]="getPositionColor(selectedPlayer.position)">
+            {{ selectedPlayer.position }}
+          </span>
+          <div class="player-rating-large">{{ selectedPlayer.overallRating }}</div>
+        </div>
+        
+        <div class="player-detail-info">
+          <div class="info-row">
+            <span>Nationality:</span>
+            <span>{{ selectedPlayer.nationality }}</span>
+          </div>
+          <div class="info-row">
+            <span>Age:</span>
+            <span>{{ selectedPlayer.age }}</span>
+          </div>
+        </div>
+
+        <div class="player-attributes">
+          <h3>Attributes</h3>
+          <div class="attribute">
+            <span>Pace</span>
+            <div class="attribute-bar">
+              <div class="attribute-fill" [style.width.%]="selectedPlayer.pace"></div>
+            </div>
+            <span class="attribute-value">{{ selectedPlayer.pace }}</span>
+          </div>
+          <div class="attribute">
+            <span>Shooting</span>
+            <div class="attribute-bar">
+              <div class="attribute-fill" [style.width.%]="selectedPlayer.shooting"></div>
+            </div>
+            <span class="attribute-value">{{ selectedPlayer.shooting }}</span>
+          </div>
+          <div class="attribute">
+            <span>Passing</span>
+            <div class="attribute-bar">
+              <div class="attribute-fill" [style.width.%]="selectedPlayer.passing"></div>
+            </div>
+            <span class="attribute-value">{{ selectedPlayer.passing }}</span>
+          </div>
+          <div class="attribute">
+            <span>Dribbling</span>
+            <div class="attribute-bar">
+              <div class="attribute-fill" [style.width.%]="selectedPlayer.dribbling"></div>
+            </div>
+            <span class="attribute-value">{{ selectedPlayer.dribbling }}</span>
+          </div>
+          <div class="attribute">
+            <span>Defending</span>
+            <div class="attribute-bar">
+              <div class="attribute-fill" [style.width.%]="selectedPlayer.defending"></div>
+            </div>
+            <span class="attribute-value">{{ selectedPlayer.defending }}</span>
+          </div>
+          <div class="attribute">
+            <span>Physical</span>
+            <div class="attribute-bar">
+              <div class="attribute-fill" [style.width.%]="selectedPlayer.physical"></div>
+            </div>
+            <span class="attribute-value">{{ selectedPlayer.physical }}</span>
+          </div>
+        </div>
+
+        <div class="player-form-fitness">
+          <div class="form-fitness-item">
+            <span>Form</span>
+            <div class="circular-progress" [style.background]="'conic-gradient(' + getFormColor(selectedPlayer.form) + ' ' + selectedPlayer.form * 3.6 + 'deg, #ecf0f1 0deg)'">
+              <div class="inner-circle">{{ selectedPlayer.form }}</div>
+            </div>
+          </div>
+          <div class="form-fitness-item">
+            <span>Fitness</span>
+            <div class="circular-progress" [style.background]="'conic-gradient(#3498db ' + selectedPlayer.fitness * 3.6 + 'deg, #ecf0f1 0deg)'">
+              <div class="inner-circle">{{ selectedPlayer.fitness }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="player-statistics">
+          <h3>Statistics</h3>
+          <div class="stats-grid">
+            <div class="stat-box">
+              <div class="stat-number">{{ selectedPlayer.goals }}</div>
+              <div class="stat-label">Goals</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number">{{ selectedPlayer.assists }}</div>
+              <div class="stat-label">Assists</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number">{{ selectedPlayer.matchesPlayed }}</div>
+              <div class="stat-label">Matches</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button
+            *ngIf="!isPlayerInTeam(selectedPlayer.id)"
+            class="btn-primary"
+            (click)="addPlayerToTeam(selectedPlayer); closePlayerDetails()"
+          >
+            Add to Team
+          </button>
+          <button
+            *ngIf="isPlayerInTeam(selectedPlayer.id)"
+            class="btn-danger"
+            (click)="removePlayerFromTeam(selectedPlayer.id); closePlayerDetails()"
+          >
+            Remove from Team
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

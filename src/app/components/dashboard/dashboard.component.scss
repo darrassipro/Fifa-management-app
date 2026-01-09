@@ -1,0 +1,21 @@
+// Dashboard-specific custom styles
+// Most styling is now handled by Tailwind CSS
+
+.stat-card {
+  // Additional hover effects beyond Tailwind
+  &:hover {
+    .text-5xl {
+      animation: bounce 0.5s ease;
+    }
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+

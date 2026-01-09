@@ -1,0 +1,168 @@
+<div class="matches-container">
+  <div class="matches-header">
+    <h1>Matches</h1>
+    <p *ngIf="team">{{ team.name }}</p>
+  </div>
+
+  <div *ngIf="!team || team.players.length === 0" class="no-team-warning">
+    <h2>⚠️ Cannot Play Matches</h2>
+    <p>You need to create a team and add players before playing matches.</p>
+  </div>
+
+  <div *ngIf="team && team.players.length > 0" class="matches-content">
+    <!-- Match Setup -->
+    <div class="match-setup-section">
+      <h2>Play New Match</h2>
+      
+      <div class="match-preview">
+        <div class="team-preview home">
+          <img [src]="team.logoUrl" [alt]="team.name" class="team-logo">
+          <h3>{{ team.name }}</h3>
+          <div class="team-rating">{{ team.overallRating }}</div>
+        </div>
+
+        <div class="vs-divider">
+          <span class="vs-text">VS</span>
+        </div>
+
+        <div class="team-preview away">
+          <img src="https://via.placeholder.com/100/e74c3c/ffffff?text=OPP" alt="Opponent" class="team-logo">
+          <h3>{{ opponentTeam }}</h3>
+          <div class="team-rating">{{ opponentRating }}</div>
+        </div>
+      </div>
+
+      <div class="match-controls">
+        <div class="control-group">
+          <label>Select Opponent:</label>
+          <select [(ngModel)]="opponentTeam" (change)="onOpponentChange()" class="form-select">
+            <option *ngFor="let team of opponentTeams" [value]="team.name">
+              {{ team.name }} ({{ team.rating }})
+            </option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label>Simulation Mode:</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="mode" value="instant" [(ngModel)]="simulationMode">
+              <span>Instant</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="mode" value="live" [(ngModel)]="simulationMode">
+              <span>Live (Real-time)</span>
+            </label>
+          </div>
+        </div>
+
+        <button
+          (click)="playMatch()"
+          [disabled]="isSimulating"
+          class="btn-play"
+        >
+          {{ isSimulating ? 'Simulating...' : 'Play Match' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Match History -->
+    <div class="match-history-section">
+      <h2>Match History</h2>
+      
+      <div *ngIf="matches.length === 0" class="empty-state">
+        <p>No matches played yet</p>
+        <p class="hint">Play your first match to start building your record</p>
+      </div>
+
+      <div *ngIf="matches.length > 0" class="matches-list">
+        <div *ngFor="let match of matches" class="match-card" [class]="getMatchResultClass(match)">
+          <div class="match-result-badge">
+            {{ getMatchResult(match) }}
+          </div>
+          
+          <div class="match-info">
+            <div class="match-teams">
+              <div class="team">
+                <span class="team-name">{{ match.homeTeam }}</span>
+                <span class="team-score">{{ match.homeScore }}</span>
+              </div>
+              <span class="score-separator">-</span>
+              <div class="team">
+                <span class="team-score">{{ match.awayScore }}</span>
+                <span class="team-name">{{ match.awayTeam }}</span>
+              </div>
+            </div>
+            
+            <div class="match-date">
+              {{ match.date | date: 'short' }}
+            </div>
+
+            <div *ngIf="match.events.length > 0" class="match-events-summary">
+              <span *ngFor="let event of match.events.slice(0, 3)" class="event-icon">
+                {{ getEventIcon(event.type) }}
+              </span>
+              <span *ngIf="match.events.length > 3" class="more-events">
+                +{{ match.events.length - 3 }} more
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Match Result Modal -->
+  <div *ngIf="currentMatch" class="modal-overlay" (click)="closeMatchResult()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="closeMatchResult()">✕</button>
+      
+      <div class="match-result">
+        <h2>Match Result</h2>
+        
+        <div class="result-scoreboard">
+          <div class="scoreboard-team">
+            <img [src]="team?.logoUrl" alt="Home" class="scoreboard-logo">
+            <h3>{{ currentMatch.homeTeam }}</h3>
+          </div>
+          
+          <div class="scoreboard-score">
+            <div class="score-display">
+              <span class="home-score">{{ currentMatch.homeScore }}</span>
+              <span class="score-divider">:</span>
+              <span class="away-score">{{ currentMatch.awayScore }}</span>
+            </div>
+            <div class="result-status" [class]="getMatchResultClass(currentMatch)">
+              {{ getMatchResult(currentMatch) }}
+            </div>
+          </div>
+          
+          <div class="scoreboard-team">
+            <img src="https://via.placeholder.com/80/e74c3c/ffffff?text=OPP" alt="Away" class="scoreboard-logo">
+            <h3>{{ currentMatch.awayTeam }}</h3>
+          </div>
+        </div>
+
+        <div *ngIf="currentMatch.events.length > 0" class="match-events">
+          <h3>Match Events</h3>
+          <div class="events-timeline">
+            <div *ngFor="let event of currentMatch.events" class="event-item">
+              <span class="event-minute">{{ event.minute }}'</span>
+              <span class="event-icon">{{ getEventIcon(event.type) }}</span>
+              <span class="event-description">{{ event.description }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="isSimulating && simulationMode === 'live'" class="live-indicator">
+          <span class="live-dot"></span>
+          <span>Match in Progress...</span>
+        </div>
+
+        <button class="btn-close-result" (click)="closeMatchResult()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

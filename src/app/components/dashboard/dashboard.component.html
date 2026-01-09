@@ -1,0 +1,182 @@
+<div class="max-w-7xl mx-auto px-4 py-6">
+  <div class="text-center mb-8">
+    <h1 class="text-4xl font-bold text-gray-800 mb-2">Dashboard</h1>
+    <p *ngIf="team" class="text-xl text-gray-600">{{ team.name }}</p>
+  </div>
+
+  <div *ngIf="!team" class="max-w-2xl mx-auto">
+    <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-12 text-center shadow-lg">
+      <h2 class="text-3xl font-bold text-gray-800 mb-4">Welcome to FIFA Manager!</h2>
+      <p class="text-gray-600 mb-6">Create your team to get started</p>
+      <button (click)="navigateToTeam()" class="btn-primary">
+        Create Team
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="team" class="space-y-8">
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="stat-card group cursor-pointer">
+        <div class="flex items-center gap-4">
+          <div class="text-5xl">⭐</div>
+          <div class="flex-1">
+            <h3 class="text-sm font-medium text-gray-600 mb-1">Team Rating</h3>
+            <p class="text-3xl font-bold text-blue-600">{{ team.overallRating }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card group cursor-pointer">
+        <div class="flex items-center gap-4">
+          <div class="text-5xl">🏆</div>
+          <div class="flex-1">
+            <h3 class="text-sm font-medium text-gray-600 mb-1">Wins</h3>
+            <p class="text-3xl font-bold text-green-600">{{ teamStats?.wins || 0 }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card group cursor-pointer">
+        <div class="flex items-center gap-4">
+          <div class="text-5xl">📊</div>
+          <div class="flex-1">
+            <h3 class="text-sm font-medium text-gray-600 mb-1">Matches Played</h3>
+            <p class="text-3xl font-bold text-purple-600">{{ teamStats?.matchesPlayed || 0 }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card group cursor-pointer">
+        <div class="flex items-center gap-4">
+          <div class="text-5xl">⚽</div>
+          <div class="flex-1">
+            <h3 class="text-sm font-medium text-gray-600 mb-1">Goals Scored</h3>
+            <p class="text-3xl font-bold text-orange-600">{{ teamStats?.goalsScored || 0 }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card group cursor-pointer">
+        <div class="flex items-center gap-4">
+          <div class="text-5xl">🎯</div>
+          <div class="flex-1">
+            <h3 class="text-sm font-medium text-gray-600 mb-1">Goal Difference</h3>
+            <p class="text-3xl font-bold" 
+               [class.text-green-600]="getGoalDifference() > 0"
+               [class.text-red-600]="getGoalDifference() < 0"
+               [class.text-gray-600]="getGoalDifference() === 0">
+              {{ getGoalDifference() > 0 ? '+' : '' }}{{ getGoalDifference() }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card group cursor-pointer">
+        <div class="flex items-center gap-4">
+          <div class="text-5xl">📈</div>
+          <div class="flex-1">
+            <h3 class="text-sm font-medium text-gray-600 mb-1">Avg Player Form</h3>
+            <p class="text-3xl font-bold text-indigo-600">{{ teamStats?.averagePlayerForm || 0 }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team Record -->
+    <div class="card">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">Team Record</h2>
+      <div class="space-y-4">
+        <div class="flex items-center gap-4">
+          <span class="w-20 text-sm font-medium text-gray-700">Wins</span>
+          <div class="flex-1 h-8 bg-gray-200 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
+                 [style.width.%]="getWinPercentage()"></div>
+          </div>
+          <span class="w-12 text-right font-bold text-gray-800">{{ teamStats?.wins || 0 }}</span>
+        </div>
+        
+        <div class="flex items-center gap-4">
+          <span class="w-20 text-sm font-medium text-gray-700">Draws</span>
+          <div class="flex-1 h-8 bg-gray-200 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-yellow-500 to-yellow-600 transition-all duration-500"
+                 [style.width.%]="teamStats?.matchesPlayed ? (teamStats.draws / teamStats.matchesPlayed * 100) : 0"></div>
+          </div>
+          <span class="w-12 text-right font-bold text-gray-800">{{ teamStats?.draws || 0 }}</span>
+        </div>
+        
+        <div class="flex items-center gap-4">
+          <span class="w-20 text-sm font-medium text-gray-700">Losses</span>
+          <div class="flex-1 h-8 bg-gray-200 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-500"
+                 [style.width.%]="teamStats?.matchesPlayed ? (teamStats.losses / teamStats.matchesPlayed * 100) : 0"></div>
+          </div>
+          <span class="w-12 text-right font-bold text-gray-800">{{ teamStats?.losses || 0 }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Matches -->
+    <div class="card">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">Recent Matches</h2>
+      
+      <div *ngIf="recentMatches.length === 0" class="text-center py-12">
+        <p class="text-gray-500 mb-4">No matches played yet</p>
+        <button (click)="navigateToMatches()" class="btn-secondary">
+          Play a Match
+        </button>
+      </div>
+      
+      <div *ngIf="recentMatches.length > 0" class="space-y-3">
+        <div *ngFor="let match of recentMatches" 
+             class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+          <div class="flex-1">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-semibold text-gray-800">{{ match.homeTeam }}</span>
+              <span class="text-2xl font-bold text-blue-600 mx-4">{{ match.homeScore }} - {{ match.awayScore }}</span>
+              <span class="font-semibold text-gray-800">{{ match.awayTeam }}</span>
+            </div>
+            <div class="text-sm text-gray-500">{{ match.date | date: 'short' }}</div>
+          </div>
+          
+          <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-lg"
+               [class.bg-green-500]="match.homeScore > match.awayScore"
+               [class.bg-yellow-500]="match.homeScore === match.awayScore"
+               [class.bg-red-500]="match.homeScore < match.awayScore">
+            {{ match.homeScore > match.awayScore ? 'W' : match.homeScore === match.awayScore ? 'D' : 'L' }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">Quick Actions</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <button (click)="navigateToPlayers()" 
+                class="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-blue-50 to-blue-100 
+                       rounded-xl hover:from-blue-100 hover:to-blue-200 transition-all duration-200 
+                       hover:shadow-lg hover:-translate-y-1 group">
+          <span class="text-5xl group-hover:scale-110 transition-transform">👥</span>
+          <span class="font-semibold text-gray-800">Manage Players</span>
+        </button>
+        
+        <button (click)="navigateToMatches()" 
+                class="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-green-50 to-green-100 
+                       rounded-xl hover:from-green-100 hover:to-green-200 transition-all duration-200 
+                       hover:shadow-lg hover:-translate-y-1 group">
+          <span class="text-5xl group-hover:scale-110 transition-transform">⚽</span>
+          <span class="font-semibold text-gray-800">Play Match</span>
+        </button>
+        
+        <button (click)="navigateToTeam()" 
+                class="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-purple-50 to-purple-100 
+                       rounded-xl hover:from-purple-100 hover:to-purple-200 transition-all duration-200 
+                       hover:shadow-lg hover:-translate-y-1 group">
+          <span class="text-5xl group-hover:scale-110 transition-transform">⚙️</span>
+          <span class="font-semibold text-gray-800">Team Settings</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
